@@ -6,12 +6,12 @@ php:
   - 7.1
 
 before_install:
-  - apt-get -qq update
-  - apt-get install libsodium-dev
+  - sudo apt-get -qq update
+  - sudo apt-get install libsodium-dev
 
 install:
-  - pecl install libsodium
-  - echo 'extension=libsodium.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - sudo pecl install libsodium
+  - sudo echo 'extension=libsodium.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
 
 before_script:
   - composer install --prefer-dist -o
