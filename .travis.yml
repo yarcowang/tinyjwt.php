@@ -1,17 +1,11 @@
 language: php
-sudo: required
 
 php:
   - 7.0
   - 7.1
 
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install libsodium-dev
-
 install:
-  - sudo pecl install libsodium
-  - sudo echo 'extension=libsodium.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - pecl install libsodium
 
 before_script:
   - composer install --prefer-dist -o
