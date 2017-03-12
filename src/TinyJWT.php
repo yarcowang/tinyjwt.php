@@ -8,89 +8,52 @@
 
 namespace Yarco\TinyJWT;
 
-use ParagonIE\Halite\KeyFactory;
-use ParagonIE\Halite\SignatureKeyPair;
-use ParagonIE\Halite\Symmetric\AuthenticationKey;
-use ParagonIE\Halite\Symmetric\Crypto as SymmetricCrypto;
-use ParagonIE\Halite\Asymmetric\Crypto as AsymmetricCrypto;
+use Yarco\TinyJWT\Adapter\IDriver;
+use Yarco\TinyJWT\Adapter\OpenSSLDriver;
+use Yarco\TinyJWT\Adapter\ParagonIEHaliteDriver;
 
 class TinyJWT
 {
-    const SYMMETRIC = 1;
-    const ASYMMETRIC = 2;
-
-    protected $_type;
+    /**
+     * @var IDriver
+     */
+    private $_driver;
 
     /**
-     * @var AuthenticationKey|SignatureKeyPair
+     * TinyJWT constructor.
+     * @param IDriver|null $driver
      */
-    protected $_key;
-
-    public function __construct($auto = true)
+    public function __construct(IDriver $driver = null)
     {
-        if ($auto) {
-            $this->setUp();
+        if (!$driver) {
+            $driver = extension_loaded('libsodium') ?
+                new ParagonIEHaliteDriver() :
+                new OpenSSLDriver()
+                ;
         }
+        $this->_driver = $driver;
     }
 
-    public function setUp($type = self::SYMMETRIC, $secret = '')
+    public function newKey()
     {
-        if ($type === self::SYMMETRIC || $type === self::ASYMMETRIC) {
-            $this->_type = $type;
-            $this->_key = $type === self::SYMMETRIC ?
-                KeyFactory::generateAuthenticationKey($secret) : KeyFactory::generateSignatureKeyPair($secret)
-            ;
-        } else if ($type instanceof AuthenticationKey) {
-            $this->_type = self::SYMMETRIC;
-            $this->_key = $type;
-        } else if ($type instanceof SignatureKeyPair) {
-            $this->_type = self::ASYMMETRIC;
-            $this->_key = $type;
-        } else { // default to Symmetric
-            $this->_type = self::SYMMETRIC;
-            $this->_key = KeyFactory::generateAuthenticationKey($secret);
-        }
+        $this->_driver->newKey();
+        return $this;
     }
 
-    public function setUpFromFile($file, $type = self::SYMMETRIC)
+    public function saveTo(string $file)
     {
-        $this->_type = $type;
-        $this->_key = $this->_type === self::SYMMETRIC ?
-            KeyFactory::loadAuthenticationKey($file) : KeyFactory::loadSignatureKeyPair($file)
-        ;
+        return $this->_driver->saveTo($file);
     }
 
-    public function saveTo($file)
+    public function loadFrom(string $file)
     {
-        return KeyFactory::save($this->_key, $file);
+        return $this->_driver->loadFrom($file);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getType()
-    {
-        return $this->_type;
-    }
-
-    /**
-     * @return AuthenticationKey|SignatureKeyPair
-     */
-    public function getKey()
-    {
-        return $this->_key;
-    }
-
-    public function getToken(array $payload = [])
+    public function getToken(array $payload = []) : string
     {
         $s1 = base64_encode(json_encode($payload, JSON_FORCE_OBJECT));
-        $func = $this->_type === self::SYMMETRIC ?
-            [SymmetricCrypto::class, 'authenticate'] : [AsymmetricCrypto::class, 'sign']
-        ;
-        $args = $this->_type === self::SYMMETRIC ?
-            [$s1, $this->_key] : [$s1, $this->_key->getSecretKey()];
-        $s2 = base64_encode(call_user_func_array($func, $args));
-        return $s1 . '.' . $s2;
+        return $s1 . '.' . base64_encode($this->_driver->sign($s1));
     }
 
     public function verify($token)
@@ -98,14 +61,7 @@ class TinyJWT
         list($s1, $s2) = explode('.', $token);
         $s2 = base64_decode($s2);
 
-        $func = $this->_type === self::SYMMETRIC ?
-            [SymmetricCrypto::class, 'verify'] : [AsymmetricCrypto::class, 'verify']
-        ;
-        $args = $this->_type === self::SYMMETRIC ?
-            [$s1, $this->_key, $s2] : [$s1, $this->_key->getPublicKey(), $s2]
-        ;
-
-        $ret = call_user_func_array($func, $args);
+        $ret = $this->_driver->verify($s1, $s2);
         if (!$ret) {
             return false;
         }

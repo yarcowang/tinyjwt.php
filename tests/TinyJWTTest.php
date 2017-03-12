@@ -8,43 +8,33 @@
 
 class TinyJWTTest extends PHPUnit_Framework_TestCase
 {
-    public function testAutoSetup()
+    public function testGetTokenParagonIE()
     {
         $t = new \Yarco\TinyJWT\TinyJWT();
-        $this->assertTrue($t->getType() === Yarco\TinyJWT\TinyJWT::SYMMETRIC);
-        $this->assertInstanceOf(\ParagonIE\Halite\Symmetric\AuthenticationKey::class, $t->getKey());
-    }
-
-    public function testCustomSetup()
-    {
-        $t1 = new \Yarco\TinyJWT\TinyJWT(false);
-        $t1->setUp(\Yarco\TinyJWT\TinyJWT::ASYMMETRIC, '1111');
-        $t1->saveTo(__DIR__ . '/fixtures/test.key');
-
-        $t2 = new \Yarco\TinyJWT\TinyJWT(false);
-        $t2->setUpFromFile(__DIR__ . '/fixtures/test.key', \Yarco\TinyJWT\TinyJWT::ASYMMETRIC);
-        $this->assertEquals($t1, $t2);
-
-        unlink(__DIR__ . '/fixtures/test.key');
-    }
-
-    public function testGetToken()
-    {
-        $t = new \Yarco\TinyJWT\TinyJWT();
-        $token = $t->getToken(['name' => 'Yarco']);
+        $token = $t->newKey()->getToken(['name' => 'Yarco']);
         $this->assertStringStartsWith(base64_encode(json_encode(['name' => 'Yarco'])), $token);
     }
 
-    public function testVerifyToken()
+    public function testGetTokenOpenSSL()
+    {
+        $t = new \Yarco\TinyJWT\TinyJWT(new \Yarco\TinyJWT\Adapter\OpenSSLDriver());
+        $token = $t->newKey()->getToken(['name' => 'Yarco']);
+        $this->assertStringStartsWith(base64_encode(json_encode(['name' => 'Yarco'])), $token);
+    }
+
+    public function testVerifyTokenParagonIE()
     {
         $t = new \Yarco\TinyJWT\TinyJWT();
-        $token = $t->getToken(['name' => 'Yarco']);
+        $token = $t->newKey()->getToken(['name' => 'Yarco']);
         $this->assertEquals(['name' => 'Yarco'], $t->verify($token));
         $this->assertNotEquals(['name' => 'yarco'], $t->verify($token));
+    }
 
-        $t2 = new Yarco\TinyJWT\TinyJWT(false);
-        $t2->setUp(\Yarco\TinyJWT\TinyJWT::ASYMMETRIC);
-        $token2 = $t2->getToken(['name' => 'Yarco']);
-        $this->assertFalse($t->verify($token2));
+    public function testVerifyTokenOpenSSL()
+    {
+        $t = new Yarco\TinyJWT\TinyJWT(new \Yarco\TinyJWT\Adapter\OpenSSLDriver());
+        $token = $t->newKey()->getToken(['name' => 'Yarco']);
+        $this->assertEquals(['name' => 'Yarco'], $t->verify($token));
+        $this->assertNotEquals(['name' => 'yarco'], $t->verify($token));
     }
 }
