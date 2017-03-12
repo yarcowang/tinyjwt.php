@@ -1,28 +1,34 @@
 {
-    "name": "yarco/tinyjwt",
-    "description": "a zero configurable jwt solution in php",
-    "type": "library",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Yarco",
-            "email": "yarco.wang@gmail.com",
-            "role": "Leader"
-        }
-    ],
-    "keywords": [
-        "JWT"
-    ],
-    "require": {
-        "php": ">=7.0",
-        "paragonie/halite": "^3.2"
-    },
-    "autoload": {
-        "psr-4": {
-            "Yarco\\TinyJWT\\": "src"
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^5.7"
+  "name": "yarco/tinyjwt",
+  "description": "a JWT like library but for simple usage and no limitation",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Yarco",
+      "email": "yarco.wang@gmail.com",
+      "role": "Core"
     }
+  ],
+  "keywords": [
+    "JWT"
+  ],
+  "require": {
+    "php": ">=7.0",
+    "ext-openssl": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Yarco\\TinyJWT\\": "src"
+    }
+  },
+  "require-dev": {
+    "paragonie/halite": "^3.2",
+    "phpunit/phpunit": "^5.7"
+  },
+  "extra": {
+    "branch-alias": {
+      "dev-master": "0.x-dev"
+    }
+  }
 }
