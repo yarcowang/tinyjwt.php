@@ -6,7 +6,7 @@
  * @since 17/1/2 下午6:30
  */
 
-class TinyJWTTest extends PHPUnit_Framework_TestCase
+class TinyJWTTest extends \PHPUnit\Framework\TestCase
 {
     public function testGetTokenParagonIE()
     {

@@ -7,7 +7,7 @@
  * @since 3/12/17 1:23 PM
  */
 
-class OpenSSLDriverTest extends PHPUnit_Framework_TestCase
+class OpenSSLDriverTest extends \PHPUnit\Framework\TestCase
 {
     public function testVerifyData()
     {

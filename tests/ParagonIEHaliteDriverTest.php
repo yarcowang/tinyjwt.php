@@ -6,7 +6,7 @@
  * @author Yarco Wang <yarco.wang@gmail.com>
  * @since 3/12/17 1:35 PM
  */
-class ParagonIEHaliteDriverTest extends PHPUnit_Framework_TestCase
+class ParagonIEHaliteDriverTest extends \PHPUnit\Framework\TestCase
 {
     public function testVerifyData()
     {
